@@ -49,13 +49,17 @@ trait Unification {
     *
     * @return The most general unifier of the two terms, iff they are unifiable.
     */
-  def unify[T](term1: T, term2: T): Option[Substitution[Variable, T]] = {
+  def unify[T >: Variable](term1: T, term2: T): Option[Substitution[Variable, T]] = {
     None
   }
 
 
+  /**
+    * Collect all children, i.e. subterms, of the given term.
+    */
   def children[T: ClassTag](term: T): List[T] = {
-    // Collect all children
+    // Collect all children. The list 'childs' will contain the value term
+    // as its first element due to the semantics of Kiama's collectl.
     val childs = collectl {
       case x => x
     }(term)
@@ -97,8 +101,14 @@ object Test extends Unification {
   case class Var(ide: String) extends Term
   case class Abs(ide: String, body: Term) extends Term
   case class App(f: Term, e: Term) extends Term
+  case class Tuple(elems: List[Term]) extends Term
+  case class MetaVar(ide: String) extends Term
+
+  type Variable = MetaVar
 
 
   val testTerm = App(Abs("x", Var("x")),
 		     Var("x"))
+
+  val testTuple = Tuple(List(Var("x"), Var("y"), Var("z")))
 }
