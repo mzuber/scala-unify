@@ -67,8 +67,26 @@ trait Unification {
     // Filter subterms, i.e., children which have type T
     childs.tail collect {
       case t: T => t
+    import scala.collection.mutable.ListBuffer
+
+    val childs = new ListBuffer[T]()
+
+    // Collect all children
+    val collect = query {
+      case t: T => childs += t
     }
+    
+    // FIXME: Find a strategy which traverses only the imediate subterms
+    breadthfirst(collect)(term)
+
+    childs.toList
   }
+
+
+  /**
+    * The arity of a term, i.e. the number of all children of a given term.
+    */
+  def arity[T](term: T): Int = children[Any](term).length
 
 
   /**
