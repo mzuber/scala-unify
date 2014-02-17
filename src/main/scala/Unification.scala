@@ -32,6 +32,8 @@
 import org.kiama.rewriting.Rewriter._
 import scala.reflect.ClassTag
 
+import scala.collection.Map.empty
+
 
 /**
   *
@@ -49,24 +51,19 @@ trait Unification {
     *
     * @return The most general unifier of the two terms, iff they are unifiable.
     */
-  def unify[T >: Variable](term1: T, term2: T): Option[Substitution[Variable, T]] = {
-    None
+  def unify[T >: Variable](term1: T, term2: T): Option[Substitution[Variable, T]] = (term1, term2) match {
+    // Dummy value
+    case _ => Some(empty: Map[Variable, T])
   }
 
 
   /**
     * Collect all children, i.e. subterms, of the given term.
+    *
+    * This function does not only collect all immediate subterms,
+    * but all children of a given term.
     */
   def children[T: ClassTag](term: T): List[T] = {
-    // Collect all children. The list 'childs' will contain the value term
-    // as its first element due to the semantics of Kiama's collectl.
-    val childs = collectl {
-      case x => x
-    }(term)
-
-    // Filter subterms, i.e., children which have type T
-    childs.tail collect {
-      case t: T => t
     import scala.collection.mutable.ListBuffer
 
     val childs = new ListBuffer[T]()
@@ -111,6 +108,12 @@ trait Unification {
     }
   }
 
+
+
+  implicit class Substitution[A, B](substitution: Map[A, B]) {
+
+  }
+
 }
 
 object Test extends Unification {
@@ -125,7 +128,7 @@ object Test extends Unification {
   type Variable = MetaVar
 
 
-  val testTerm = App(Abs("x", Var("x")),
+  val testTerm = App(Abs("y", App(Var("y"), Var("y"))),
 		     Var("x"))
 
   val testTuple = Tuple(List(Var("x"), Var("y"), Var("z")))
